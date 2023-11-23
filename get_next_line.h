@@ -23,9 +23,9 @@
 #  define BUFFER_SIZE 10
 # endif
 
-# if BUFFER_SIZE > 9223372036854775806L
+# if BUFFER_SIZE > 8999999
 #  undef BUFFER_SIZE
-#  define BUFFER_SIZE 0
+#  define BUFFER_SIZE 10
 # endif
 
 char	*get_next_line(int fd);
