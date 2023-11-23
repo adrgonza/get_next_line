@@ -12,85 +12,86 @@
 
 #include "get_next_line.h"
 
-char	*ft_strjoin(char *s1, char *s2, int i, int j)
+static char	*concat_rem(char *rem_txt, const char *const buff, int i, int j)
 {
-	char	*str;
+	char	*new_rem;
 
-	if (!s1)
+	if (!rem_txt)
 	{
-		s1 = malloc(1);
-		if (!s1)
+		rem_txt = malloc(1 * sizeof(char));
+		if (!rem_txt)
 			return (NULL);
-		s1[0] = 0;
+		*rem_txt = 0;
 	}
-	while (s1 && s1[i])
+	while (rem_txt && rem_txt[i])
 		i++;
-	while (s2 && s2[j])
+	while (buff && buff[j])
 		j++;
-	str = malloc(i + j + 1);
-	if (!str)
-		return (free(s1), s1 = NULL);
+	new_rem = malloc((i + j + 1) * sizeof(char));
+	if (!new_rem)
+		return (free(rem_txt), rem_txt = NULL);
 	i = -1;
+	while (rem_txt[++i])
+		new_rem[i] = rem_txt[i];
 	j = 0;
-	while (s1 && s1[++i])
-		str[i] = s1[i];
-	while (s2[j])
-		str[i++] = s2[j++];
-	return (str[i] = '\0', free(s1), str);
+	while (buff && buff[j])
+		new_rem[i++] = buff[j++];
+	return (new_rem[i] = 0, free(rem_txt), new_rem);
 }
 
-char	*line_tools(char *line, char **str, int i, int j)
+static char	*var_manage(char *line, char **rem_txt, int i, int j)
 {
-	char	*tmp;
+	char	*new_rem;
 
-	while ((*str)[i] && (*str)[i] != '\n')
+	while ((*rem_txt)[i] && (*rem_txt)[i] != '\n')
 		i++;
-	if (!(*str)[i])
+	if (!(*rem_txt)[i])
 		i--;
-	line = malloc(i + 2);
+	line = malloc((i + 2) * sizeof(char));
 	if (!line)
-		return (free(*str), *str = NULL);
-	line[i + 1] = '\0';
+		return (free(*rem_txt), *rem_txt = NULL);
+	line[i + 1] = 0;
 	i = -1;
-	while ((*str)[++i] && (*str)[i] != '\n')
-		line[i] = (*str)[i];
-	line[i] = (*str)[i];
-	if (!(*str)[i])
-		return (free(*str), *str = NULL, line);
-	while ((*str)[j])
+	while ((*rem_txt)[++i] && (*rem_txt)[i] != '\n')
+		line[i] = (*rem_txt)[i];
+	line[i] = (*rem_txt)[i];
+	if (!(*rem_txt)[i])
+		return (free(*rem_txt), *rem_txt = NULL, line);
+	while ((*rem_txt)[j])
 		j++;
-	tmp = malloc(j - i + 2);
-	if (!tmp)
-		return (free(line), free(*str), *str = NULL);
+	new_rem = malloc((j - i + 2) * sizeof(char));
+	if (!new_rem)
+		return (free(line), free(*rem_txt), *rem_txt = NULL);
 	j = 0;
-	while ((*str)[++i])
-		tmp[j++] = (*str)[i];
-	return (tmp[j] = '\0', free(*str), *str = tmp, line);
+	while ((*rem_txt)[++i])
+		new_rem[j++] = (*rem_txt)[i];
+	return (new_rem[j] = 0, free(*rem_txt), *rem_txt = new_rem, line);
 }
 
 char	*get_next_line(int fd)
 {
-	static char	*str;
+	static char	*rem_txt;
 	char		*line;
-	char		tmp[BUFFER_SIZE + 1];
+	char		buffer[BUFFER_SIZE + 1];
 	int			i;
 
-	i = 1;
-	while (i != 0)
+	while (1)
 	{
-		i = read(fd, tmp, BUFFER_SIZE);
+		i = read(fd, buffer, BUFFER_SIZE);
 		if (i == -1)
-			return (free(str), str = NULL);
-		tmp[i] = '\0';
-		str = ft_strjoin(str, tmp, 0, 0);
-		if (!str)
-			return (free(str), str = NULL);
+			return (free(rem_txt), rem_txt = NULL);
+		buffer[i] = 0;
+		rem_txt = concat_rem(rem_txt, buffer, 0, 0);
+		if (!rem_txt)
+			return (free(rem_txt), rem_txt = NULL);
+		if (i == 0)
+			break ;
 		i = -1;
-		while (tmp[++i] && tmp[i] != '\n')
-			if (tmp[i + 1] == '\n')
-				return (line = NULL, line_tools(line, &str, 0, 0));
+		while (buffer[++i] && buffer[i] != '\n')
+			if (buffer[i + 1] == '\n')
+				return (line = NULL, var_manage(line, &rem_txt, 0, 0));
 	}
-	if (!str[0])
-		return (free(str), str = NULL);
-	return (line = NULL, line_tools(line, &str, 0, 0));
+	if (!*rem_txt)
+		return (free(rem_txt), rem_txt = NULL);
+	return (line = NULL, var_manage(line, &rem_txt, 0, 0));
 }
